@@ -310,4 +310,83 @@ describe('The Atomize Composite Rules function', () => {
             }
         })
     }
+
+    describe('handles missing properties by wildcarding to undefined', () => {
+
+
+        test('works when action is missing (wildcard action)', () => {
+            const extraAssignee = namedNode(TEST.namespace + "anotherParty")
+            rule = rule.filter(q => !q.predicate.equals(ODRL.terms.action))
+            rule.push(
+                quad(TEST.terms.permission1, ODRL.terms.assignee, extraAssignee)
+            )
+
+            const resultStore = new Store(atomizeCompositeRules(rule));
+            const derivedFromQuads = resultStore.getQuads(null, DERIVED_FROM, TEST.terms.permission1, null);
+            expect(derivedFromQuads).toHaveLength(2);
+
+            const derivedRules = derivedFromQuads.map(q => q.subject);
+
+            for (const derivedRule of derivedRules) {
+                expect(resultStore.getQuads(derivedRule, ODRL.terms.assignee, null, null)).toHaveLength(1);
+                expect(resultStore.getQuads(derivedRule, ODRL.terms.action, null, null)).toHaveLength(0);
+            }
+        })
+
+        test('works when assigner is missing (wildcard assigner)', () => {
+            const extraAssignee = namedNode(TEST.namespace + "anotherParty")
+            rule = rule.filter(q => !q.predicate.equals(ODRL.terms.assigner))
+            rule.push(
+                quad(TEST.terms.permission1, ODRL.terms.assignee, extraAssignee)
+            )
+
+            const resultStore = new Store(atomizeCompositeRules(rule));
+            const derivedFromQuads = resultStore.getQuads(null, DERIVED_FROM, TEST.terms.permission1, null);
+            expect(derivedFromQuads).toHaveLength(2);
+
+            const derivedRules = derivedFromQuads.map(q => q.subject);
+
+            for (const derivedRule of derivedRules) {
+                expect(resultStore.getQuads(derivedRule, ODRL.terms.assignee, null, null)).toHaveLength(1);
+                expect(resultStore.getQuads(derivedRule, ODRL.terms.assigner, null, null)).toHaveLength(0);
+            }
+        })
+
+        test('works when assignee is missing (wildcard assignee)', () => {
+            rule = rule.filter(q => !q.predicate.equals(ODRL.terms.assignee))
+            rule.push(
+                quad(TEST.terms.permission1, ODRL.terms.action, ODRL.terms.write)
+            )
+
+            const resultStore = new Store(atomizeCompositeRules(rule));
+            const derivedFromQuads = resultStore.getQuads(null, DERIVED_FROM, TEST.terms.permission1, null);
+            expect(derivedFromQuads).toHaveLength(2);
+
+            const derivedRules = derivedFromQuads.map(q => q.subject);
+
+            for (const derivedRule of derivedRules) {
+                expect(resultStore.getQuads(derivedRule, ODRL.terms.action, null, null)).toHaveLength(1);
+                expect(resultStore.getQuads(derivedRule, ODRL.terms.assignee, null, null)).toHaveLength(0);
+            }
+        })
+
+        test('works when target is missing (wildcard target)', () => {
+            const extraAssignee = namedNode(TEST.namespace + "anotherParty")
+            rule = rule.filter(q => !q.predicate.equals(ODRL.terms.target))
+            rule.push(
+                quad(TEST.terms.permission1, ODRL.terms.assignee, extraAssignee)
+            )
+
+            const resultStore = new Store(atomizeCompositeRules(rule));
+            const derivedFromQuads = resultStore.getQuads(null, DERIVED_FROM, TEST.terms.permission1, null);
+            expect(derivedFromQuads).toHaveLength(2);
+
+            const derivedRules = derivedFromQuads.map(q => q.subject);
+
+            for (const derivedRule of derivedRules) {
+                expect(resultStore.getQuads(derivedRule, ODRL.terms.assignee, null, null)).toHaveLength(1);
+                expect(resultStore.getQuads(derivedRule, ODRL.terms.target, null, null)).toHaveLength(0);
+            }
+        })
+    })
 });
