@@ -4,16 +4,16 @@ import { atomizeCompositeRules } from "./AtomizeCompositeRules";
 
 
 export interface IAtomizer {
-    evaluate(quads: Quad[]): Promise<Quad[]>
+    atomize(quads: Quad[]): Promise<Quad[]>
 }
 
 export class Atomizer implements IAtomizer {
     public constructor(){
 
     }
-    evaluate(quads: Quad[]): Promise<Quad[]> {
+    atomize(quads: Quad[]): Promise<Quad[]> {
         const atomizeCompact = atomizeCompactPolicies(quads);
-        const atomized = atomizeCompositeRules(quads);
+        const atomized = atomizeCompositeRules(atomizeCompact);
         
         return Promise.resolve(atomized);
     }

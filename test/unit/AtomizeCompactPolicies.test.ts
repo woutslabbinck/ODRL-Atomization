@@ -1,39 +1,11 @@
 import { Quad } from '@rdfjs/types'
 import { DataFactory, Store } from 'n3'
-import { createVocabulary } from 'rdf-vocabulary';
 import { atomizeCompactPolicies, ODRL, RDF } from '../../src/'
 import 'jest-rdf';
+import { ELEVATED_PROPERTIES, POLICY_TYPES, TEST } from '../util/Util';
 const { namedNode, quad } = DataFactory;
 
-// deliberatly placed here
-const POLICY_TYPES: Set<string> = new Set([
-    ODRL.Policy,
-    ODRL.Agreement,
-    ODRL.Assertion,
-    ODRL.Offer,
-    ODRL.Privacy,
-    ODRL.Request,
-    ODRL.Set,
-    ODRL.Ticket,
-]);
 
-const ELEVATED_PROPERTIES = [
-    ODRL.terms.action,
-    ODRL.terms.target,
-    ODRL.terms.assignee,
-    ODRL.terms.assigner,
-];
-
-
-export const TEST = createVocabulary(
-    'http://example.org/',
-    'policy1',
-    'permission1',
-    'prohibition1',
-    'duty1',
-    'asset',
-    'party'
-);
 describe('The Atomize Compact Policies function', () => {
 
     let policy: Quad[];

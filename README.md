@@ -2,9 +2,9 @@
 
 ## TODO list
 
-- [ ] Node 22 or higher -> add .nvmrc
-- [ ] add tests (from demo and ODRL Evaluator)
-  - [ ] Atomize class
+- [x] Node 22 or higher -> add .nvmrc
+- [x] add tests (from demo and ODRL Evaluator)
+  - [x] Atomize class
   - [x] Compact Policies
   - [x] Composite rules
 - [ ] publish to npm

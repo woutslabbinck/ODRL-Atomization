@@ -1,4 +1,4 @@
-export * from "./Atomize"
+export * from "./Atomizer"
 export * from "./AtomizeCompactPolicies"
 export * from "./AtomizeCompositeRules"
 

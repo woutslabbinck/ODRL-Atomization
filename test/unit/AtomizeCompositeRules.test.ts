@@ -1,21 +1,9 @@
 import { Quad } from '@rdfjs/types'
 import { DataFactory, Store } from 'n3'
-import { createVocabulary } from 'rdf-vocabulary';
 import { atomizeCompositeRules, ODRL, RDF } from '../../src/'
 import 'jest-rdf';
+import { DERIVED_FROM, TEST } from '../util/Util';
 const { namedNode, quad } = DataFactory;
-
-export const TEST = createVocabulary(
-    'http://example.org/',
-    'policy1',
-    'permission1',
-    'prohibition1',
-    'duty1',
-    'asset',
-    'party'
-);
-
-const DERIVED_FROM = namedNode('http://example.org/ns/derivedFrom');
 
 describe('The Atomize Composite Rules function', () => {
 
