@@ -1,7 +1,7 @@
 import { Quad, Term } from "@rdfjs/types";
 import { DataFactory, Quad_Object, Store } from 'n3';
 import { RDF, ODRL } from './util/Vocabulary';
-import { extractAllRulesFromPolicy, ODRL_COMPACT_COMPOSITE_PREDICATES, POLICY_TYPES } from './util/util';
+import { extractAllRulesFromStore, ODRL_COMPACT_COMPOSITE_PREDICATES, POLICY_TYPES } from './util/util';
 
 const { namedNode, quad } = DataFactory
 
@@ -9,50 +9,42 @@ export function atomizeCompositeRules(quads: Quad[]): Quad[] {
     const store = new Store(quads);
     const result = new Store(quads);
 
-    // Find policy nodes
-    const policySubjects = store
-        .getQuads(null, RDF.type, null, null)
-        .filter(q => POLICY_TYPES.has(q.object.value))
-        .map(q => q.subject);
+    const ruleSubjects = extractAllRulesFromStore(store)
 
-    for (const policy of policySubjects) {
-        // Rule links from policy
-        const ruleSubjects = extractAllRulesFromPolicy(policy, store)
+    for (const rule of ruleSubjects) {
+        const ruleQuads = store.getQuads(rule, null, null, null);
+        const ruleType = store.getQuads(rule, RDF.terms.type, null, null).map(q => q.object);
+        if (ruleType.length !== 1) throw Error(`${rule.value} has no type`);
 
-        for (const rule of ruleSubjects) {
-            const ruleQuads = store.getQuads(rule, null, null, null);
-            const ruleType = store.getQuads(rule, RDF.terms.type, null, null).map(q => q.object);
-            if (ruleType.length !== 1) throw Error(`${rule.value} has no type`);
+        // create cartesian product of all shared properties
+        const actions = store.getQuads(rule, ODRL.terms.action, null, null).map(q => q.object);
+        const assigners = store.getQuads(rule, ODRL.terms.assigner, null, null).map(q => q.object);
+        const assignees = store.getQuads(rule, ODRL.terms.assignee, null, null).map(q => q.object);
+        const targets = store.getQuads(rule, ODRL.terms.target, null, null).map(q => q.object);
 
-            // create cartesian product of all shared properties
-            const actions = store.getQuads(rule, ODRL.terms.action, null, null).map(q => q.object);
-            const assigners = store.getQuads(rule, ODRL.terms.assigner, null, null).map(q => q.object);
-            const assignees = store.getQuads(rule, ODRL.terms.assignee, null, null).map(q => q.object);
-            const targets = store.getQuads(rule, ODRL.terms.target, null, null).map(q => q.object);
+        // If any of the properties have more than one value, atomize the rule
+        if (actions.length > 1 || assigners.length > 1 || assignees.length > 1 || targets.length > 1) {
+            // Remove the full rule from the result if we're atomizing it
+            ruleQuads.forEach(quad => result.removeQuad(quad));
 
-            // If any of the properties have more than one value, atomize the rule
-            if (actions.length > 1 || assigners.length > 1 || assignees.length > 1 || targets.length > 1) {
-                // Remove the full rule from the result if we're atomizing it
-                ruleQuads.forEach(quad => result.removeQuad(quad));
+            // Cartesian product of all combinations of action, assigner, assignee, target
+            const cartesianProduct = calculateCartesianProduct({ actions, assigners, assignees, targets })
 
-                // Cartesian product of all combinations of action, assigner, assignee, target
-                const cartesianProduct = calculateCartesianProduct({ actions, assigners, assignees, targets })
+            // Check in the (updated) graph which policies/rules reference the current rule
+            const references: Quad[] = findReferences(result, rule);
 
-                // Check in the (updated) graph which policies/rules reference the current rule
-                const references: Quad[] = findReferences(result, rule);
-                
-                // Create new rules for each combination
-                cartesianProduct.forEach((properties) => {
-                    // Create a new unique rule ID using a proper UUID format (v4)
-                    const newRuleQuads: Quad[] = createNewRules({quads: ruleQuads, ruleNode: rule, type:ruleType[0]}, properties, references);
+            // Create new rules for each combination
+            cartesianProduct.forEach((properties) => {
+                // Create a new unique rule ID using a proper UUID format (v4)
+                const newRuleQuads: Quad[] = createNewRules({ quads: ruleQuads, ruleNode: rule, type: ruleType[0] }, properties, references);
 
-                    // remove all references
-                    result.removeQuads(references);
-                    result.addQuads(newRuleQuads);
-                });
-            }
+                // remove all references
+                result.removeQuads(references);
+                result.addQuads(newRuleQuads);
+            });
         }
     }
+
 
     return result.getQuads(null, null, null, null);
 }
@@ -80,12 +72,12 @@ type QuadProperty = Quad_Object | undefined; // Action, Assigner, Assignee, or T
  * @returns A list of quads representing the new rule, including all the necessary references.
  */
 function createNewRules(
-    originalRule: {quads: Quad[], type: Quad_Object, ruleNode: Term}, 
-    newProperties: {action: QuadProperty, assigner: QuadProperty, assignee: QuadProperty, target: QuadProperty}, 
+    originalRule: { quads: Quad[], type: Quad_Object, ruleNode: Term },
+    newProperties: { action: QuadProperty, assigner: QuadProperty, assignee: QuadProperty, target: QuadProperty },
     references: Quad[]
 ): Quad[] {
-    const {action, assigner, assignee, target} = newProperties;
-    const {quads: ruleQuads, type, ruleNode: rule} = originalRule;
+    const { action, assigner, assignee, target } = newProperties;
+    const { quads: ruleQuads, type, ruleNode: rule } = originalRule;
     const newRuleNamedNode = namedNode(`urn:uuid:${crypto.randomUUID()}`);
     // Create the new rule quads
     const newRuleQuads: Quad[] = [];

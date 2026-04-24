@@ -1,6 +1,6 @@
 import { Store } from 'n3';
 import { Term } from '@rdfjs/types';
-import { ODRL } from './Vocabulary';
+import { ODRL, RDF } from './Vocabulary';
 
 /**
  * Extract all ODRL rule identifiers from a policy, including nested ones,
@@ -45,6 +45,30 @@ export function extractAllRulesFromPolicy(
     const quads = store.getQuads(policy, predicate, null, null);
     for (const q of quads) {
       visit(q.object);
+    }
+  }
+
+  return rules;
+}
+
+
+/**
+ * Extract all ODRL rules based purely on rdf:type.
+ * 
+ */
+export function extractAllRulesFromStore(store: Store): Set<Term> {
+  const rules = new Set<Term>();
+
+  const ruleTypes = [
+    ODRL.terms.Permission,
+    ODRL.terms.Prohibition,
+    ODRL.terms.Duty,
+  ];
+
+  for (const type of ruleTypes) {
+    const quads = store.getQuads(null, RDF.type, type, null);
+    for (const q of quads) {
+      rules.add(q.subject);
     }
   }
 
