@@ -4,6 +4,9 @@
 
 - [ ] Node 22 or higher -> add .nvmrc
 - [ ] add tests (from demo and ODRL Evaluator)
+  - [ ] Atomize class
+  - [x] Compact Policies
+  - [x] Composite rules
 - [ ] publish to npm
 - [ ] Add basic documentation (can be based on ODRL Validator)
 
