@@ -1,6 +1,6 @@
 {
   "name": "odrl-atomization",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Generate Policies with Atomic Rules from Compact Policies with Composite Rules",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

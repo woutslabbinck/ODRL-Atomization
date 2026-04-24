@@ -9,7 +9,7 @@
       "declaration": true,
       "inlineSources": true,
       "newLine": "lf",
-      "rootDir": ".",
+      "rootDir": "src",
       "outDir": "dist",
       "preserveConstEnums": true,
       "sourceMap": true,
