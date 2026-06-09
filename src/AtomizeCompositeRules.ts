@@ -1,5 +1,5 @@
 import { Quad, Term } from "@rdfjs/types";
-import { DataFactory, Quad_Object, Store } from 'n3';
+import { DataFactory, Quad_Object, Quad_Subject, Store } from 'n3';
 import { RDF, ODRL } from './util/Vocabulary';
 import { extractAllRulesFromStore, ODRL_COMPACT_COMPOSITE_PREDICATES, POLICY_TYPES } from './util/util';
 
@@ -97,7 +97,7 @@ function createNewRules(
     if (target) newRuleQuads.push(quad(newRuleNamedNode, ODRL.terms.target, target));
 
     // Add a triple to point back to the original rule (derived from)
-    newRuleQuads.push(quad(newRuleNamedNode, namedNode('http://example.org/ns/derivedFrom'), namedNode(rule.value)));
+    newRuleQuads.push(quad(newRuleNamedNode, namedNode('http://example.org/ns/derivedFrom'), rule as any as Quad_Subject));
 
     // Add all references to point to the new quad
     references.forEach(q => {

@@ -14,11 +14,17 @@
     "release": "npm run build && npm publish --access public",
     "test": "jest"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/woutslabbinck/ODRL-Atomization.git"
+  },
   "keywords": [
     "ODRL"
   ],
   "author": "Wout Slabbinck",
   "license": "MIT",
+  "bugs": { "url": "https://github.com/woutslabbinck/ODRL-Atomization/issues" },
+  "homepage": "https://github.com/woutslabbinck/ODRL-Atomization#readme",
   "dependencies": {
     "@rdfjs/types": "^2.0.1",
     "@types/n3": "^1.26.1",

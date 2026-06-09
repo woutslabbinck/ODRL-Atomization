@@ -110,6 +110,49 @@ describe('The Atomize Composite Rules function', () => {
         }
     })
 
+    test('atomizes a rule correctly when the rule starts with a blank node.', () => {
+        const permissionBlankNode = DataFactory.blankNode();
+        const rule = [
+            quad(permissionBlankNode, RDF.terms.type, ODRL.terms.Permission),
+            quad(permissionBlankNode, ODRL.terms.action, ODRL.terms.read),
+            quad(permissionBlankNode, ODRL.terms.target, TEST.terms.asset),
+            quad(permissionBlankNode, ODRL.terms.assignee, TEST.terms.party),
+            quad(permissionBlankNode, ODRL.terms.assigner, TEST.terms.party)
+        ]
+
+        const extraAssignee = namedNode(TEST.namespace + "anotherParty")
+        rule.push(
+            quad(permissionBlankNode, ODRL.terms.assignee, extraAssignee)
+        )
+        const resultStore = new Store(atomizeCompositeRules(rule));
+
+        const derivedFromQuads = resultStore.getQuads(null, DERIVED_FROM, permissionBlankNode, null);
+        expect(derivedFromQuads).toHaveLength(2);
+
+        const derivedRules = derivedFromQuads.map(q => q.subject);
+
+        for (const derivedRule of derivedRules) {
+            const assignees = resultStore.getQuads(derivedRule, ODRL.terms.assignee, null, null);
+            expect(assignees).toHaveLength(1);
+        }
+
+        const assigneeObjects = resultStore
+            .getQuads(null, ODRL.terms.assignee, null, null)
+            .map(q => q.object.value);
+
+        expect(new Set(assigneeObjects)).toEqual(new Set([TEST.terms.party.value, extraAssignee.value,]));
+
+        for (const derivedRule of derivedRules) {
+            expect(resultStore.getQuads(derivedRule, RDF.terms.type, ODRL.terms.Permission, null)).toHaveLength(1);
+            expect(resultStore.getQuads(derivedRule, ODRL.terms.action, ODRL.terms.read, null)).toHaveLength(1);
+            expect(resultStore.getQuads(derivedRule, ODRL.terms.target, TEST.terms.asset, null)).toHaveLength(1);
+            expect(resultStore.getQuads(derivedRule, ODRL.terms.assigner, TEST.terms.party, null)).toHaveLength(1);
+        }
+
+    })
+
+
+
     test('atomizes a rule with two assigners into two derived rules.', () => {
         const extraAssigner = namedNode(TEST.namespace + "anotherAssigner")
         rule.push(

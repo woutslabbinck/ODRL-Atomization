@@ -1,5 +1,5 @@
 import { Quad } from "@rdfjs/types";
-import { DataFactory, Store } from 'n3';
+import { DataFactory, Quad_Subject, Store } from 'n3';
 import { RDF } from './util/Vocabulary';
 import { extractAllRulesFromPolicy, POLICY_TYPES, ODRL_COMPACT_COMPOSITE_PREDICATES } from './util/util';
 
@@ -8,7 +8,7 @@ import { extractAllRulesFromPolicy, POLICY_TYPES, ODRL_COMPACT_COMPOSITE_PREDICA
  * 
  * Copies policy-level shared properties (e.g. target, assigner, assignee, action)
  * to all rules belonging to the policy and removes those properties from the
- * policy node. Rule-level values always take precedence.
+ * policy node.
  *
  * @param quads RDF quads containing one or more ODRL policies
  * @returns Quads where compact policies are expanded into atomic rules
@@ -38,7 +38,7 @@ export function atomizeCompactPolicies(quads: Quad[]): Quad[] {
         for (const rule of ruleSubjects) {
             // Replicate shared properties to rule
             for (const sp of sharedProps) {
-                result.addQuad(DataFactory.namedNode(rule.value), sp.predicate, sp.object, undefined);
+                result.addQuad(rule as any as Quad_Subject, sp.predicate, sp.object, undefined);
             }
         }
 

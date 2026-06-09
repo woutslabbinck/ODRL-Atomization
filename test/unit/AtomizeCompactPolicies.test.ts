@@ -48,7 +48,7 @@ describe('The Atomize Compact Policies function', () => {
 
         })
     })
-    test('does nothing when it is no elevated property in the policy.', () => {
+    test('does nothing when there is no elevated property in the policy.', () => {
         const policy = new Store(compactPolicy);
         policy.removeQuad(elevatedProperty)
         expect(atomizeCompactPolicies(policy.getQuads(null, null, null, null))).toBeRdfIsomorphic(policy)
@@ -130,7 +130,7 @@ describe('The Atomize Compact Policies function', () => {
 
         });
 
-        test('propagates elevated policy properties to all types of rules.',() => {
+        test('propagates elevated policy properties to all types of rules.', () => {
             compactPolicy.push(
                 quad(TEST.terms.policy1, ODRL.terms.prohibition, TEST.terms.prohibition1),
                 quad(TEST.terms.policy1, ODRL.terms.obligation, TEST.terms.duty1),
@@ -158,7 +158,34 @@ describe('The Atomize Compact Policies function', () => {
 
             expect(atomizeCompactPolicies(compactPolicy)).toBeRdfIsomorphic(expected);
         })
+
+        test('propagates elevated policy properties to rules when the rule starts with a blank node.', () => {
+            const permissionBlankNode = DataFactory.blankNode();
+
+            const compactPolicy = [
+                quad(TEST.terms.policy1, RDF.terms.type, ODRL.terms.Policy),
+                quad(TEST.terms.policy1, ODRL.terms.permission, permissionBlankNode),
+                elevatedProperty,
+
+                quad(permissionBlankNode, RDF.terms.type, ODRL.terms.Permission),
+                quad(permissionBlankNode, ODRL.terms.action, ODRL.terms.read),
+                quad(permissionBlankNode, ODRL.terms.target, TEST.terms.asset),
+            ]
+            const expectedPolicy = [
+                quad(TEST.terms.policy1, RDF.terms.type, ODRL.terms.Policy),
+                quad(TEST.terms.policy1, ODRL.terms.permission, permissionBlankNode),
+
+                quad(permissionBlankNode, RDF.terms.type, ODRL.terms.Permission),
+                quad(permissionBlankNode, ODRL.terms.action, ODRL.terms.read),
+                quad(permissionBlankNode, ODRL.terms.target, TEST.terms.asset),
+                quad(permissionBlankNode, elevatedProperty.predicate, elevatedProperty.object)
+            ]
+
+            expect(atomizeCompactPolicies(compactPolicy)).toBeRdfIsomorphic(expectedPolicy);
+
+        })
     })
+    
 
 
 })
